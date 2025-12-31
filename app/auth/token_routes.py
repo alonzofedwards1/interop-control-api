@@ -1,60 +1,107 @@
-"""FastAPI routes for OAuth2 token management."""
-from __future__ import annotations
-
 import jwt
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from app.auth.models import ManualTokenRequest, TokenDecodeRequest, TokenHealth, TokenResponse
-from app.auth.oauth_manager import OAuthManager, build_oauth_manager
+from app.auth.models import (
+    ManualTokenRequest,
+    TokenResponse,
+    TokenHealth,
+    TokenDecodeRequest,
+)
+from app.auth.oauth_manager import OAuthManager
+from app.auth.dependencies import get_oauth_manager
 from app.config.settings import Settings, get_settings
 
 router = APIRouter(prefix="/api/auth/token", tags=["auth"])
 
 
-def get_oauth_manager(settings: Settings = Depends(get_settings)) -> OAuthManager:
-    """Provide a shared OAuth manager instance configured via settings."""
+# -------------------------------------------------------------------
+# Guard: Ensure SYSTEM OAuth only (no SMART yet)
+# -------------------------------------------------------------------
+def require_system_auth(settings: Settings = Depends(get_settings)):
+    if settings.auth_mode != "system":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="SMART/FHIR authentication is not enabled"
+        )
+    return True
 
-    # Build a manager per-process; in-memory cache is safe for this simple control plane.
-    if not hasattr(get_oauth_manager, "_manager"):
-        get_oauth_manager._manager = build_oauth_manager(settings)  # type: ignore[attr-defined]
-    return get_oauth_manager._manager  # type: ignore[attr-defined]
 
-
-@router.post("/manual", response_model=TokenResponse)
-async def submit_credentials(
-    request: ManualTokenRequest,
+# -------------------------------------------------------------------
+# 1️⃣ DEFAULT: Issue token using backend environment variables
+# -------------------------------------------------------------------
+@router.post("", response_model=TokenResponse)
+async def issue_token(
+    _: bool = Depends(require_system_auth),
     manager: OAuthManager = Depends(get_oauth_manager),
-) -> TokenResponse:
-    """Accept credentials and immediately exchange them for an access token."""
+):
+    """
+    Issue a token using backend-managed OAuth credentials.
+    UI does NOT send secrets.
+    SYSTEM OAuth only.
+    """
+    return await manager.issue_token_from_env()
 
+
+# -------------------------------------------------------------------
+# 2️⃣ DEBUG ONLY: Manually supply OAuth credentials
+# -------------------------------------------------------------------
+@router.post("/manual", response_model=TokenResponse)
+async def issue_token_manual(
+    request: ManualTokenRequest,
+    _: bool = Depends(require_system_auth),
+    manager: OAuthManager = Depends(get_oauth_manager),
+):
+    """
+    DEBUG ONLY.
+    Issue a token using credentials supplied in the request body.
+    NOT for production UI use.
+    """
     return await manager.set_credentials(request)
 
 
+# -------------------------------------------------------------------
+# 3️⃣ Retrieve cached token
+# -------------------------------------------------------------------
 @router.get("", response_model=TokenResponse)
-async def get_access_token(manager: OAuthManager = Depends(get_oauth_manager)) -> TokenResponse:
-    """Return a valid access token, refreshing when it is near expiry."""
-
+async def get_token(
+    _: bool = Depends(require_system_auth),
+    manager: OAuthManager = Depends(get_oauth_manager),
+):
     return await manager.get_token()
 
 
+# -------------------------------------------------------------------
+# 4️⃣ Token health (no auth required)
+# -------------------------------------------------------------------
 @router.get("/health", response_model=TokenHealth)
-async def token_health(manager: OAuthManager = Depends(get_oauth_manager)) -> TokenHealth:
-    """Expose token presence and expiry metadata for observability."""
-
+def token_health(
+    manager: OAuthManager = Depends(get_oauth_manager),
+):
     return manager.token_health()
 
 
+# -------------------------------------------------------------------
+# 5️⃣ JWT decode (inspection only, no verification)
+# -------------------------------------------------------------------
 @router.post("/decode")
-def decode_jwt(request: TokenDecodeRequest) -> dict:
-    """Decode a JWT without verifying the signature or claims."""
-
-    if not request.token:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="token is required")
-
+def decode_jwt(request: TokenDecodeRequest):
+    """
+    Decode JWT header & claims WITHOUT verification.
+    Safe for inspection/debugging only.
+    """
     try:
         header = jwt.get_unverified_header(request.token)
-        claims = jwt.decode(request.token, options={"verify_signature": False, "verify_exp": False})
-    except jwt.PyJWTError as exc:  # type: ignore[attr-defined]
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+        claims = jwt.decode(
+            request.token,
+            options={
+                "verify_signature": False,
+                "verify_exp": False,
+            },
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e),
+        )
 
     return {"header": header, "claims": claims}

@@ -1,12 +1,15 @@
-"""Interop Control API entrypoint."""
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.auth.token_routes import router as auth_router
 from app.health.routes import router as health_router
 from app.pd.routes import router as pd_router
+from app.patient.search_routes import router as patient_search_router
 
-app = FastAPI(title="Interop Control API", version="0.1.0")
+app = FastAPI(
+    title="Interop Control API",
+    version="0.1.0",
+)
 
 app.add_middleware(
     CORSMiddleware,
@@ -19,3 +22,4 @@ app.add_middleware(
 app.include_router(health_router)
 app.include_router(auth_router)
 app.include_router(pd_router)
+app.include_router(patient_search_router)
