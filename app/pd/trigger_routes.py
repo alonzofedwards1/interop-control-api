@@ -8,7 +8,7 @@ from app.config.settings import Settings, get_settings
 from app.pd.storage import PDStorage
 from app.pd.mirth_client import send_pd_request
 
-router = APIRouter(prefix="/api/pd", tags=["patient-discovery"])
+router = APIRouter(tags=["patient-discovery"])
 
 
 @router.post("/trigger/")

@@ -29,11 +29,13 @@ uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 
 ## Key Endpoints
 
-- `GET /health` - basic service health.
+- `GET /api/health/` - basic service health.
+- `GET /api/health/ping` - lightweight uptime check.
 - `POST /api/auth/token/manual` - submit OAuth2 password grant credentials and fetch a token.
 - `GET /api/auth/token` - fetch current token (refreshing if close to expiry).
 - `GET /api/auth/token/health` - token presence and expiry info.
 - `POST /api/auth/token/decode` - decode JWT header and claims without verification.
-- `POST /api/pd/trigger` - forward demo patient discovery payload to configured downstream endpoint.
+- `POST /api/pd/trigger/` - forward demo patient discovery payload to configured downstream endpoint.
+- `POST /api/pd/callback` - callback endpoint for PD responses from Mirth.
 
 OpenAPI documentation is available at `/docs` and `/openapi.json` when the server is running.

@@ -1,14 +1,15 @@
 """System health endpoints."""
 
-from fastapi import APIRouter, Depends
 from datetime import datetime, timezone
+
+from fastapi import APIRouter, Depends
 
 from app.config.settings import Settings, get_settings
 
 router = APIRouter(prefix="/api/health", tags=["health"])
 
 
-@router.get("")
+@router.get("/")
 def health_check(settings: Settings = Depends(get_settings)) -> dict:
     """
     High-level system health endpoint.
@@ -24,7 +25,12 @@ def health_check(settings: Settings = Depends(get_settings)) -> dict:
         "environment": settings.environment,
         "timestamp": datetime.now(timezone.utc).isoformat(),
     }
-from app.config.settings import get_settings
+
+
+@router.get("/ping")
+def ping() -> dict:
+    return {"status": "ok"}
+
 
 @router.get("/debug/settings")
 def debug_settings():

@@ -17,3 +17,18 @@ This repository is currently on the `test` branch. Use these notes when exercisi
 3. Start the API locally with `uvicorn app.main:app --reload --host 0.0.0.0 --port 8000`.
 
 These steps keep the test environment aligned with the known-working Mirth endpoint and payload expectations.
+
+## Callback sanity checks
+
+- Health: `curl -i http://localhost:8000/api/health/ping`
+- Callback echo (expects HTTP 200):
+
+```bash
+curl -i \
+  -H "Content-Type: application/json" \
+  -H "x-correlation-id: test-corr-id" \
+  -d '{"patient_reference":"demo","correlation_id":"test-corr-id"}' \
+  http://localhost:8000/api/pd/callback
+```
+
+The callback logs the payload and correlation ID and responds with `{ "status": "received", "correlation_id": "test-corr-id" }`.
