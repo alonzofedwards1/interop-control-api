@@ -19,7 +19,14 @@ class Settings(BaseSettings):
     expires_soon_seconds: int = Field(default=120, ge=30)
 
     # ---- Patient Discovery ----
-    pd_endpoint_url: str | None = None
+    pd_endpoint_url: str = Field(
+        default="http://100.27.251.103:6662/pd/trigger/",
+        validation_alias="PD_ENDPOINT_URL",
+    )
+    pd_callback_url: str = Field(
+        default="http://100.27.251.103:8000/api/pd/callback",
+        validation_alias="PD_CALLBACK_URL",
+    )
     pd_storage_dir: str = "./data/pd"
 
     class Config:
