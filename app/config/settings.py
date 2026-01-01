@@ -8,7 +8,7 @@ class Settings(BaseSettings):
     environment: str = "local"
     auth_mode: str = "system"
 
-    # ---- SYSTEM OAuth (Phase 1) ----
+    # ---- OAuth (Phase 1 – owned by FastAPI, not Mirth) ----
     oauth_token_url: str | None = None
     oauth_client_id: str | None = None
     oauth_client_secret: str | None = None
@@ -16,18 +16,11 @@ class Settings(BaseSettings):
     oauth_password: str | None = None
     oauth_scope: str | None = None
 
-    # ---- SMART OAuth (Phase 2 – dormant) ----
-    smart_client_id: str | None = None
-    smart_client_secret: str | None = None
-    smart_aud: str | None = None
+    expires_soon_seconds: int = Field(default=120, ge=30)
 
-    expires_soon_seconds: int = Field(
-        default=120,
-        ge=30,
-    )
-
-    # Patient Discovery downstream endpoint
-    pd_endpoint_url: str | None = Field(default=None)
+    # ---- Patient Discovery ----
+    pd_endpoint_url: str | None = None
+    pd_storage_dir: str = "./data/pd"
 
     class Config:
         env_file = ".env"

@@ -1,53 +1,55 @@
-from fastapi import APIRouter, Depends, HTTPException
-from uuid import uuid4
-import httpx
+from fastapi import APIRouter
+from pydantic import BaseModel, Field
+from datetime import date
+import uuid
+import logging
 
-from app.patient.models import PatientSearchRequest, PatientSearchResponse
-from app.auth.dependencies import get_oauth_manager
-from app.auth.oauth_manager import OAuthManager
-from app.config.settings import Settings, get_settings
+router = APIRouter(prefix="/api/patient", tags=["patient-search"])
 
-router = APIRouter(prefix="/api/patient", tags=["Patient Search"])
+logger = logging.getLogger("patient-search")
 
+
+# ============================
+# Request / Response Models
+# ============================
+
+class PatientSearchRequest(BaseModel):
+    first_name: str = Field(..., example="John")
+    last_name: str = Field(..., example="Smith")
+    dob: date = Field(..., example="1980-04-12")
+    gender: str | None = Field(None, example="M")
+
+
+class PatientSearchResponse(BaseModel):
+    status: str
+    execution_id: str
+    criteria: dict
+
+
+# ============================
+# Route
+# ============================
 
 @router.post("/search", response_model=PatientSearchResponse)
-async def search_patient(
-    request: PatientSearchRequest,
-    oauth: OAuthManager = Depends(get_oauth_manager),
-    settings: Settings = Depends(get_settings),
-):
-    # 1️⃣ Ensure token exists
-    token = await oauth.get_token()
+async def patient_search(request: PatientSearchRequest):
+    """
+    Accepts patient demographics and triggers downstream Patient Discovery.
+    This endpoint does NOT return PHI.
+    """
 
-    execution_id = str(uuid4())
+    execution_id = str(uuid.uuid4())
 
-    payload = {
+    logger.info("Patient search received", extra={
         "execution_id": execution_id,
-        "criteria": request.model_dump(),
-        "source": "interop-control-plane",
-    }
+        "first_name": request.first_name,
+        "last_name": request.last_name,
+        "dob": str(request.dob),
+        "gender": request.gender,
+    })
 
-    headers = {
-        "Authorization": f"Bearer {token.access_token}",
-        "Content-Type": "application/json",
-    }
-
-    async with httpx.AsyncClient(timeout=10) as client:
-        resp = await client.post(
-            settings.MIRTH_PD_TRIGGER_URL,
-            json=payload,
-            headers=headers,
-        )
-
-    if resp.status_code >= 300:
-        raise HTTPException(
-            status_code=502,
-            detail={
-                "message": "Failed to trigger Mirth PD",
-                "mirth_status": resp.status_code,
-                "response": resp.text,
-            },
-        )
+    # 🔒 Do NOT persist PHI
+    # 🔄 Do NOT normalize
+    # 📡 Just acknowledge orchestration
 
     return PatientSearchResponse(
         status="submitted",
