@@ -5,7 +5,6 @@ from app.auth.token_routes import router as auth_router
 from app.health.routes import router as health_router
 from app.pd.routes import router as pd_router
 from app.patient.search_routes import router as patient_search_router
-from app.pd.trigger_routes import router as pd_trigger_router
 
 
 app = FastAPI(
@@ -25,4 +24,3 @@ app.include_router(health_router)
 app.include_router(auth_router)
 app.include_router(pd_router)
 app.include_router(patient_search_router)
-app.include_router(pd_trigger_router)
