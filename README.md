@@ -21,9 +21,10 @@ pip install -r requirements.txt
 
 2. Copy `.env.example` to `.env` and update values for your OAuth2 provider and downstream patient discovery endpoint and callback target.
 
-3. Run the API locally (default port `8000`):
+3. Set the control plane base URL (defaults to the shared EC2 host) and run the API (default port `8000`):
 
 ```bash
+export CONTROL_PLANE_BASE_URL="http://100.27.251.103:8000"
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
