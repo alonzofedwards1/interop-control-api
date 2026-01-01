@@ -1,0 +1,9 @@
+{
+  "correlation_id": "0699a64d-6d0c-4512-a588-c1e98f242fe5",
+  "patient_reference": "767bdeca-475a-4f65-a441-551e2bc4450a",
+  "status": "FORWARDED",
+  "triggered_at": "2026-01-01T22:17:06.462235",
+  "forwarded_at": "2026-01-01T22:17:07.421782",
+  "pd_endpoint_url": "http://100.27.251.103:6662/pd/trigger/",
+  "status_code": 202
+}
