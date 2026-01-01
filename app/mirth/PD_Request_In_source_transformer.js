@@ -1,4 +1,10 @@
 // Source Transformer script for PD_Request_In channel
+var CONTROL_PLANE_BASE_URL = Packages.java.lang.System.getenv('CONTROL_PLANE_BASE_URL');
+if (!CONTROL_PLANE_BASE_URL || String(CONTROL_PLANE_BASE_URL).trim().length === 0) {
+    CONTROL_PLANE_BASE_URL = 'http://100.27.251.103:8000';
+}
+CONTROL_PLANE_BASE_URL = String(CONTROL_PLANE_BASE_URL).replace(/\/$/, '');
+
 var rawBody = "";
 try {
     var data = connectorMessage.getRawData();
@@ -58,10 +64,10 @@ if (!correlationId) {
     correlationId = Packages.java.util.UUID.randomUUID().toString();
 }
 
-// Use provided callback URL or fall back to the shared test callback
+// Use provided callback URL or fall back to the shared control plane callback
 var callbackUrl = parsed['callback_url'];
 if (!callbackUrl || String(callbackUrl).trim().length === 0) {
-    callbackUrl = 'http://100.27.251.103:8000/api/pd/callback';
+    callbackUrl = CONTROL_PLANE_BASE_URL + '/api/pd/callback';
 }
 
 channelMap.put('patient_reference', patientReference);
