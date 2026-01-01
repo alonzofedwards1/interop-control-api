@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environments
+.venv/
+venv/
+
+# IDEs
+.idea/
+.vscode/
+
+# Runtime / generated data
+data/
+pd_storage/
+*.db
+
+# OS
+.DS_Store
+Thumbs.db
