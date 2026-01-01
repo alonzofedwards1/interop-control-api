@@ -19,21 +19,24 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-2. Copy `.env.example` to `.env` and update values for your OAuth2 provider and downstream patient discovery endpoint.
+2. Copy `.env.example` to `.env` and update values for your OAuth2 provider and downstream patient discovery endpoint and callback target.
 
-3. Run the API locally (default port `8000`):
+3. Set the control plane base URL (defaults to the shared EC2 host) and run the API (default port `8000`):
 
 ```bash
+export CONTROL_PLANE_BASE_URL="http://100.27.251.103:8000"
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
 ## Key Endpoints
 
-- `GET /health` - basic service health.
+- `GET /api/health/` - basic service health.
+- `GET /api/health/ping` - lightweight uptime check.
 - `POST /api/auth/token/manual` - submit OAuth2 password grant credentials and fetch a token.
 - `GET /api/auth/token` - fetch current token (refreshing if close to expiry).
 - `GET /api/auth/token/health` - token presence and expiry info.
 - `POST /api/auth/token/decode` - decode JWT header and claims without verification.
-- `POST /api/pd/trigger` - forward demo patient discovery payload to configured downstream endpoint.
+- `POST /api/pd/trigger/` - forward demo patient discovery payload to configured downstream endpoint.
+- `POST /api/pd/callback` - callback endpoint for PD responses from Mirth.
 
 OpenAPI documentation is available at `/docs` and `/openapi.json` when the server is running.
