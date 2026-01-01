@@ -32,7 +32,11 @@ async def trigger_patient_discovery(
         triggered_at=datetime.utcnow().isoformat(),
     )
 
-    payload = {"patient_reference": patient_reference}
+    payload = {
+        "patient_reference": patient_reference,
+        "callback_url": settings.pd_callback_url,
+        "correlation_id": correlation_id,
+    }
 
     try:
         response = await send_pd_request(

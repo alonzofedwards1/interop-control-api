@@ -19,7 +19,7 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-2. Copy `.env.example` to `.env` and update values for your OAuth2 provider and downstream patient discovery endpoint.
+2. Copy `.env.example` to `.env` and update values for your OAuth2 provider and downstream patient discovery endpoint and callback target.
 
 3. Run the API locally (default port `8000`):
 
