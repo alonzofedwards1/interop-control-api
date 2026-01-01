@@ -1,9 +1,0 @@
-{
-  "correlation_id": "819bd80e-cc97-4165-b4ae-98b724422a6f",
-  "patient_reference": "288c7473-909b-4db9-b056-afc788453181",
-  "status": "FORWARDED",
-  "created_at": "2026-01-01T01:29:44.292915+00:00",
-  "updated_at": "2026-01-01T01:29:44.948182+00:00",
-  "downstream_status": 202,
-  "message": null
-}
