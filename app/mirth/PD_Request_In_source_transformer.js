@@ -35,6 +35,7 @@ if (!patientReference) {
 }
 
 var correlationId = null;
+// Prefer header, then payload, then fallback UUID
 var headers = sourceMap.get('requestHeaders');
 if (headers) {
     var headerKeys = headers.keySet().toArray();
@@ -49,12 +50,23 @@ if (headers) {
     }
 }
 
+if (!correlationId && parsed['correlation_id']) {
+    correlationId = String(parsed['correlation_id']);
+}
+
 if (!correlationId) {
     correlationId = Packages.java.util.UUID.randomUUID().toString();
 }
 
+// Use provided callback URL or fall back to the shared test callback
+var callbackUrl = parsed['callback_url'];
+if (!callbackUrl || String(callbackUrl).trim().length === 0) {
+    callbackUrl = 'http://100.27.251.103:8000/api/pd/callback';
+}
+
 channelMap.put('patient_reference', patientReference);
 channelMap.put('correlation_id', correlationId);
+channelMap.put('callback_url', callbackUrl);
 
 responseMap.put('HTTP_STATUS', '202');
 responseMap.put('RESPONSE_BODY', 'Accepted');
