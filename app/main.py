@@ -8,6 +8,7 @@ from app.patient.search_routes import router as patient_search_router
 
 # CREATE APP FIRST
 app = FastAPI(title="Interop Control API")
+redirect_slashes=False,
 
 # ROOT PROBE
 @app.get("/")
