@@ -1,7 +1,6 @@
 """System health endpoints."""
 
 from datetime import datetime, timezone
-
 from fastapi import APIRouter, Depends
 
 from app.config.settings import Settings, get_settings
@@ -9,16 +8,11 @@ from app.config.settings import Settings, get_settings
 router = APIRouter(prefix="/api/health", tags=["health"])
 
 
-@router.get("/")
+@router.get("")
 def health_check(settings: Settings = Depends(get_settings)) -> dict:
     """
     High-level system health endpoint.
-
-    Answers:
-    - Is the API running?
-    - Is configuration loaded?
     """
-
     return {
         "status": "ok",
         "service": "interop-control-api",
